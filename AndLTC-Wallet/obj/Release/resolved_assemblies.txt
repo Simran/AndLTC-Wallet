@@ -1,2 +1,0 @@
-C:\Users\Simran\Documents\Projects\AndLTC-Wallet\AndLTC-Wallet\bin\Release\AndLTC-Wallet.dll
-C:\Users\Simran\Documents\Projects\AndLTC-Wallet\AndLTC-Wallet\bin\Release\INIFileParser.dll
