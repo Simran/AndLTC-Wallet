@@ -1,0 +1,2 @@
+AndLTCWallet.Activity1;andltcwallet.Activity1
+AndLTCWallet.UserItemAdapter;andltcwallet.UserItemAdapter
