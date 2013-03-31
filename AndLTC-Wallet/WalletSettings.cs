@@ -1,8 +1,16 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Threading;
 
 using IniParser;
+
+using Android.App;
+using Android.Content;
+using Android.Runtime;
+using Android.Views;
+using Android.Widget;
+using Android.OS;
 
 namespace AndLTCWallet
 {
@@ -13,22 +21,13 @@ namespace AndLTCWallet
 
 		FileIniDataParser settingsInfo = new FileIniDataParser();
 		IniData settingsValues;
-
-		WebClient settingsClient = new WebClient();
+		
 		string settingsDir = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal) + Java.IO.File.Separator + "Settings.ini";
 
 		public WalletSettings ()
 		{
-			if (File.Exists(settingsDir))
-			{
-				settingsValues = settingsInfo.LoadFile(settingsDir);
-				VaultKey = getVaultKey();
-			}
-			else
-			{
-				settingsClient.DownloadFile(new Uri("http://litecoinforums.org/android/andltc-wallet/Settings.ini"), settingsDir);
-				settingsValues = settingsInfo.LoadFile(settingsDir);
-			}
+			settingsValues = settingsInfo.LoadFile(settingsDir);
+			VaultKey = getVaultKey();
 		}
 
 		public void setSettings(string Section, string Key, string Value)

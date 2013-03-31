@@ -20,6 +20,8 @@ namespace AndLTCWallet
 
 		Wallet ltcWallet;
 		ProgressDialog dialog;
+
+		string settingsDir = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal) + Java.IO.File.Separator + "Settings.ini";
 		
 		protected override void OnCreate (Bundle bundle)
 		{
@@ -31,9 +33,20 @@ namespace AndLTCWallet
 			loadingWork();
 			new Thread(delegate() 
 			{
+				checkSettingsFile();
 				ltcWallet = new Wallet();
 				ThreadPool.QueueUserWorkItem(o => setUI());
 			}).Start();
+		}
+
+		public void checkSettingsFile()
+		{
+			if (!File.Exists(settingsDir))
+			{
+				StreamReader settingsStream = new StreamReader(Assets.Open ("Settings.ini"));
+				string settingsString = settingsStream.ReadToEnd();
+				File.WriteAllText(settingsDir, settingsString);
+			}
 		}
 
 		public override bool OnCreateOptionsMenu(IMenu menu)
@@ -75,7 +88,11 @@ namespace AndLTCWallet
 							new Thread(delegate() 
 							{
 								ltcWallet.newWallet();
+								RunOnUiThread(delegate() {
+								ListView transView = FindViewById<ListView>(Resource.Id.listView1);
+								transView.SetAdapter(null);
 								setUI();
+							});
 							}).Start();
 							//return;
 						}
