@@ -55,6 +55,20 @@ namespace AndLTCWallet
 			LastTransactions = lastTransactions(walletPage);
 		}
 
+		public void usePreviousWallet(string vaultKey)
+		{
+			walletClient.Dispose();
+			walletClient = new WebClientEx();
+			
+			Key = vaultKey;
+
+			walletSettings.setSettings("WALLET", "VAULTKEY", Key);
+			walletPage = getVault(Key);
+			Address = getAddress(walletPage);
+			Balance = getBalance(walletPage);
+			LastTransactions = lastTransactions(walletPage);
+		}
+
 		private string getBalance(string vaultPage)
 		{
 			return Regex.Match (vaultPage, "is</h1><br><h1><font style='font-size: 100px';>(\\S+)</font><font style='font-size: 50px';>LTC").Groups[1].Value;

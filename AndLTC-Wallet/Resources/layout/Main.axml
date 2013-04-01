@@ -28,10 +28,29 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/textView2" />
-    <EditText
+    <RelativeLayout
+        android:id="@+id/relativeLayout2"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/editText1" />
+        android:layout_height="wrap_content">
+        <ImageButton
+            android:id="@+id/qrCode"
+            android:src="@drawable/QRCode"
+            android:layout_alignParentRight="true"
+            android:scaleType="fitCenter"
+            android:layout_width="45dip"
+            android:layout_height="45dip"
+            android:cropToPadding="true"
+            android:paddingLeft="10dp" />
+        <EditText
+            android:id="@+id/editText1"
+            android:layout_alignParentLeft="true"
+            android:layout_toLeftOf="@id/qrCode"
+            android:layout_centerVertical="true"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1" />
+    </RelativeLayout>
     <TextView
         android:text="Amount:"
         android:layout_width="fill_parent"

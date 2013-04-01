@@ -5,6 +5,9 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+using ZXing;
+using ZXing.Mobile;
+
 using Android.App;
 using Android.Content;
 using Android.Runtime;
@@ -20,6 +23,7 @@ namespace AndLTCWallet
 
 		Wallet ltcWallet;
 		ProgressDialog dialog;
+		MobileBarcodeScanner scanner;
 
 		string settingsDir = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal) + Java.IO.File.Separator + "Settings.ini";
 		
@@ -31,6 +35,7 @@ namespace AndLTCWallet
 			SetContentView (Resource.Layout.Main);
 
 			loadingWork();
+			scanner = new MobileBarcodeScanner(this);
 			new Thread(delegate() 
 			{
 				checkSettingsFile();
@@ -82,23 +87,25 @@ namespace AndLTCWallet
 				{
 				newWalletCheck("Are you sure you want a new wallet?", userOption =>
 					{
-						if (userOption == true)
+						switch (userOption)
 						{
-							loadingWork();
-							new Thread(delegate() 
+							case userNewWallet.YES:
 							{
-								ltcWallet.newWallet();
-								RunOnUiThread(delegate() {
-								ListView transView = FindViewById<ListView>(Resource.Id.listView1);
-								transView.SetAdapter(null);
-								setUI();
-							});
-							}).Start();
-							//return;
-						}
-						else
-						{
-							return;
+								loadingWork();
+								new Thread(delegate() {
+									ltcWallet.newWallet();
+									RunOnUiThread(delegate() {
+									ListView transView = FindViewById<ListView>(Resource.Id.listView1);
+									transView.SetAdapter(null);
+									setUI(); });
+									}).Start();
+								break;
+							}
+							case userNewWallet.PREVIOUSKEY:
+							{
+								previousVaultKey();
+								break;
+							}
 						}
 					});
 					break;
@@ -107,7 +114,14 @@ namespace AndLTCWallet
 			return true;
 		}
 
-		public void newWalletCheck(string alertMessage, Action<bool> callback)
+		public enum userNewWallet
+		{
+			YES = 0, 
+			NO = 1,
+			PREVIOUSKEY = 2
+		}
+
+		public void newWalletCheck(string alertMessage, Action<userNewWallet> callback)
 		{
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.SetTitle(Android.Resource.String.DialogAlertTitle);
@@ -115,13 +129,52 @@ namespace AndLTCWallet
 			builder.SetMessage(alertMessage);
 			builder.SetPositiveButton("Yes", (sender, e) =>
 			                          {
-				callback(true);
+				callback(userNewWallet.YES);
 			});
 			builder.SetNegativeButton("No", (sender, e) =>
 			                          {
-				callback(false);
+				callback(userNewWallet.NO);
 			});
+			builder.SetNeutralButton("Key", (sender, e) =>
+			                          {
+				callback(userNewWallet.PREVIOUSKEY);
+			});
+			builder.Show();
+		}
+
+		public void previousVaultKey()
+		{
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			
+			builder.SetTitle(Android.Resource.String.DialogAlertTitle);
+			builder.SetIcon(Android.Resource.Drawable.IcDialogAlert);
+			builder.SetMessage("Please enter your vault key");
+			
+			// Set an EditText view to get user input 
+			EditText input = new EditText(this);
+			builder.SetView(input);
+			
+			builder.SetPositiveButton("Ok", (sender, e) =>
+			                          {
+					if (string.IsNullOrEmpty(input.Text))
+					{
+						RunOnUiThread(() => Toast.MakeText(this, "Adding vault key cancelled!", ToastLength.Short).Show());
+					} 
+					else
+					{
+					RunOnUiThread(delegate() {
+						loadingWork();
+						ltcWallet.usePreviousWallet(input.Text);
+						ListView transView = FindViewById<ListView>(Resource.Id.listView1);
+						transView.SetAdapter(null);
+						setUI();
+						});
+					}
+			});
+			builder.SetNegativeButton("No", (sender, e) =>
+			                          {
+				Toast.MakeText(this, "Adding vault key cancelled!", ToastLength.Short).Show();
+			});
 			builder.Show();
 		}
 
@@ -146,13 +199,20 @@ namespace AndLTCWallet
 				
 				Button ltcSend = FindViewById<Button>(Resource.Id.button1);
 				EditText ltcAmount = FindViewById<EditText>(Resource.Id.editText2);
-				EditText ltcSendAddress = FindViewById<EditText>(Resource.Id.editText2);
+				EditText ltcSendAddress = FindViewById<EditText>(Resource.Id.editText1);
 
 				ltcSend.Click += delegate
 				{
 					sendLTC(ltcSendAddress.Text, ltcAmount.Text);
 				};
-				
+
+				ImageButton qrScanner = FindViewById<ImageButton>(Resource.Id.qrCode);
+
+				qrScanner.Click += delegate 
+				{
+					scanQR();
+				};
+
 				ltcAddress.Text = string.Format("{0}\n", ltcWallet.Address);
 				ltcVaultKey.Text = ltcWallet.Key;
 				ltcBalance.Text = string.Format("Balance: {0} LTC", ltcWallet.Balance);
@@ -168,6 +228,21 @@ namespace AndLTCWallet
 				}
 			});
 			dialog.Dismiss();
+		}
+
+		public void scanQR()
+		{
+			EditText ltcSendAddress = FindViewById<EditText>(Resource.Id.editText1);
+
+			scanner.UseCustomOverlay = false;
+
+			scanner.TopText = "Hold the camera up to the barcode\nAbout 6 inches away";
+			scanner.BottomText = "Wait for the barcode to automatically scan!";
+
+			scanner.Scan().ContinueWith(t => {   
+				if (t.Status == System.Threading.Tasks.TaskStatus.RanToCompletion)
+					RunOnUiThread(() => ltcSendAddress.Text = t.Result.Text);
+			});
 		}
 	}
 }

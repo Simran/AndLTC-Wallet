@@ -49,6 +49,12 @@
     <Reference Include="INIFileParser">
       <HintPath>..\..\..\..\Desktop\INIFileParser.dll</HintPath>
     </Reference>
+    <Reference Include="zxing.monoandroid">
+      <HintPath>..\..\..\..\Desktop\zxing.monoandroid.dll</HintPath>
+    </Reference>
+    <Reference Include="ZXing.Net.Mobile">
+      <HintPath>..\..\..\..\Desktop\ZXing.Net.Mobile.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainActivity.cs" />
@@ -74,6 +80,7 @@
     <AndroidResource Include="Resources\Values\Strings.xml" />
     <AndroidResource Include="Resources\Values\Themes.xml" />
     <AndroidResource Include="Resources\menu\ActionItems.xml" />
+    <AndroidResource Include="Resources\drawable\QRCode.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
   <ItemGroup>
